@@ -70,6 +70,24 @@ class Query:
         """Return a deep copy of this query for safe reuse."""
         return deepcopy(self)
 
+    def __repr__(self) -> str:
+        """Return a string representation of the query."""
+        try:
+            sql, params = self.build()
+            if params:
+                return f"Query({sql!r}, params={params!r})"
+            return f"Query({sql!r})"
+        except Exception:
+            return f"Query(table={self._table!r}, type={self._type!r})"
+
+    def __str__(self) -> str:
+        """Return the SQL string."""
+        try:
+            sql, _ = self.build()
+            return sql
+        except Exception:
+            return f"<Query {self._type} on {self._table}>"
+
     def dialect(self, d: Dialect) -> Query:
         """Set the SQL dialect for this query."""
         self._dialect = d

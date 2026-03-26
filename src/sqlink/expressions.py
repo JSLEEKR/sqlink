@@ -25,6 +25,13 @@ class Expr:
     def __invert__(self) -> Not:
         return Not(self)
 
+    def __repr__(self) -> str:
+        try:
+            sql, params = self.to_sql()
+            return f"{self.__class__.__name__}({sql!r})"
+        except Exception:
+            return f"{self.__class__.__name__}()"
+
     def as_(self, alias: str) -> Alias:
         """Create an aliased expression: expr AS alias."""
         return Alias(self, alias)
