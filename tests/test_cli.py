@@ -55,7 +55,7 @@ class TestReadQueriesFromFile:
 
     def test_newline_separated(self):
         with tempfile.NamedTemporaryFile(mode="w", suffix=".sql", delete=False) as f:
-            f.write("SELECT 1\n\nSELECT 2\n\nSELECT 3")
+            f.write("SELECT 1;\n\nSELECT 2;\n\nSELECT 3")
             f.flush()
             queries = _read_queries_from_file(f.name)
         os.unlink(f.name)
