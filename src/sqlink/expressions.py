@@ -356,6 +356,61 @@ class Subquery(Expr):
         return f"({sql})", params
 
 
+class Window(Expr):
+    """SQL window function: func OVER (PARTITION BY ... ORDER BY ...).
+
+    Usage:
+        Window(Func("ROW_NUMBER")).partition_by("dept").order_by("salary", "DESC")
+        Window(Func("SUM", F("amount"))).partition_by("user_id")
+    """
+
+    def __init__(self, func: Expr):
+        self.func = func
+        self._partition_by: list[str] = []
+        self._order_by: list[tuple[str, str]] = []
+        self._frame: str | None = None
+        self._alias: str | None = None
+
+    def partition_by(self, *columns: str) -> Window:
+        self._partition_by.extend(columns)
+        return self
+
+    def order_by(self, column: str, direction: str = "ASC") -> Window:
+        self._order_by.append((column, direction))
+        return self
+
+    def frame(self, spec: str) -> Window:
+        """Set window frame: e.g. 'ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW'."""
+        self._frame = spec
+        return self
+
+    def alias(self, name: str) -> Window:
+        self._alias = name
+        return self
+
+    def to_sql(self, dialect: Dialect | None = None) -> tuple[str, list[Any]]:
+        func_sql, params = self.func.to_sql(dialect)
+        quote = dialect.quote_identifier if dialect else lambda x: x
+
+        over_parts = []
+        if self._partition_by:
+            cols = ", ".join(quote(c) for c in self._partition_by)
+            over_parts.append(f"PARTITION BY {cols}")
+        if self._order_by:
+            order_cols = ", ".join(
+                f"{quote(c)} {d}" for c, d in self._order_by
+            )
+            over_parts.append(f"ORDER BY {order_cols}")
+        if self._frame:
+            over_parts.append(self._frame)
+
+        over_clause = " ".join(over_parts)
+        result = f"{func_sql} OVER ({over_clause})"
+        if self._alias:
+            result += f" AS {quote(self._alias)}"
+        return result, params
+
+
 class OrderExpr:
     """Order expression for ORDER BY."""
 

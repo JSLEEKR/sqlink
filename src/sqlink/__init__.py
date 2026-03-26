@@ -18,6 +18,7 @@ from sqlink.expressions import (
     Like,
     Exists,
     Subquery,
+    Window,
 )
 from sqlink.schema import Column, Schema, ForeignKey
 from sqlink.types import OrderDirection, JoinType, ConflictAction
@@ -46,6 +47,7 @@ __all__ = [
     "Like",
     "Exists",
     "Subquery",
+    "Window",
     "Column",
     "Schema",
     "ForeignKey",
