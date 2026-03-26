@@ -25,6 +25,23 @@ class Expr:
     def __invert__(self) -> Not:
         return Not(self)
 
+    def as_(self, alias: str) -> Alias:
+        """Create an aliased expression: expr AS alias."""
+        return Alias(self, alias)
+
+
+class Alias(Expr):
+    """Aliased expression: expr AS alias."""
+
+    def __init__(self, expr: Expr, alias: str):
+        self.expr = expr
+        self.alias_name = alias
+
+    def to_sql(self, dialect: Dialect | None = None) -> tuple[str, list[Any]]:
+        sql, params = self.expr.to_sql(dialect)
+        quote = dialect.quote_identifier if dialect else lambda x: x
+        return f"{sql} AS {quote(self.alias_name)}", params
+
 
 class Raw(Expr):
     """Raw SQL expression with optional parameters."""
@@ -96,6 +113,10 @@ class F(Expr):
 
     def is_not_null(self) -> IsNotNull:
         return IsNotNull(self.name)
+
+    def as_(self, alias: str) -> Alias:
+        """Create an aliased expression: column AS alias."""
+        return Alias(self, alias)
 
     def asc(self) -> OrderExpr:
         return OrderExpr(self.name, "ASC")

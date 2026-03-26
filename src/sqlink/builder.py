@@ -61,6 +61,7 @@ class Query:
         self._union_queries: list[tuple[str, Any]] = []
         self._subquery_from: Subquery | None = None
         self._lock: str | None = None
+        self._distinct_on: list[str] = []
 
     def clone(self) -> Query:
         """Return a deep copy of this query for safe reuse."""
@@ -93,6 +94,12 @@ class Query:
     def distinct(self) -> Query:
         """Add DISTINCT to SELECT."""
         self._distinct = True
+        return self
+
+    def distinct_on(self, *columns: str) -> Query:
+        """Add DISTINCT ON (columns) — PostgreSQL only."""
+        self._distinct = True
+        self._distinct_on = list(columns)
         return self
 
     # ── FROM ────────────────────────────────────────────────
@@ -361,7 +368,13 @@ class Query:
                     cols.append("*")
                 else:
                     cols.append(quote(col))
-        distinct = "DISTINCT " if self._distinct else ""
+        if self._distinct_on:
+            on_cols = ", ".join(quote(c) for c in self._distinct_on)
+            distinct = f"DISTINCT ON ({on_cols}) "
+        elif self._distinct:
+            distinct = "DISTINCT "
+        else:
+            distinct = ""
         col_str = ", ".join(cols) if cols else "*"
         parts.append(f"SELECT {distinct}{col_str}")
 

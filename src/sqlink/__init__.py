@@ -6,6 +6,7 @@ from sqlink.expressions import (
     F,
     Expr,
     Raw,
+    Alias,
     Case,
     And,
     Or,
