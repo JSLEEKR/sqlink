@@ -63,6 +63,8 @@ class Query:
         self._lock: str | None = None
         self._distinct_on: list[str] = []
         self._insert_from_select: Query | None = None
+        self._comment: str | None = None
+        self._label: str | None = None
 
     def clone(self) -> Query:
         """Return a deep copy of this query for safe reuse."""
@@ -71,6 +73,16 @@ class Query:
     def dialect(self, d: Dialect) -> Query:
         """Set the SQL dialect for this query."""
         self._dialect = d
+        return self
+
+    def comment(self, text: str) -> Query:
+        """Add a SQL comment to the query (/* ... */)."""
+        self._comment = text
+        return self
+
+    def label(self, name: str) -> Query:
+        """Add a label/tag comment (/* app:label */) for query tracing."""
+        self._label = name
         return self
 
     # ── SELECT ──────────────────────────────────────────────
@@ -317,6 +329,12 @@ class Query:
 
         parts: list[str] = []
         params: list[Any] = []
+
+        # Comment / Label
+        if self._label:
+            parts.append(f"/* {self._label} */")
+        elif self._comment:
+            parts.append(f"/* {self._comment} */")
 
         # CTEs
         if self._ctes:
