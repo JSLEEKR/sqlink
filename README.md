@@ -7,7 +7,7 @@
 [![Stars](https://img.shields.io/github/stars/JSLEEKR/sqlink?style=for-the-badge)](https://github.com/JSLEEKR/sqlink)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![Tests](https://img.shields.io/badge/tests-188-green?style=for-the-badge)](tests/)
+[![Tests](https://img.shields.io/badge/tests-652-green?style=for-the-badge)](tests/)
 
 <br/>
 
@@ -224,10 +224,20 @@ users.delete().where(F("id") == 1).build()
 src/sqlink/
   __init__.py      # Public API exports
   builder.py       # Core Query builder with fluent chain API
-  expressions.py   # F(), Condition, And, Or, Not, In, Between, Case, etc.
+  expressions.py   # F(), Condition, And, Or, Not, In, Between, Case, Window, Alias
   dialect.py       # PostgreSQL, MySQL, SQLite dialect implementations
   schema.py        # CREATE TABLE / DROP TABLE schema builder
   types.py         # Enums and type definitions
+  aggregates.py    # Count, Sum, Avg, Max, Min, Coalesce, Round, etc.
+  compose.py       # Scope, QueryTemplate, Paginator, ConditionalBuilder, BatchInsert
+  transaction.py   # Transaction builder with savepoints
+  migration.py     # AlterTable operations (add/drop/rename columns, indexes)
+  ddl.py           # CreateIndex, DropIndex, Truncate, CreateView, DropView
+  json_ops.py      # JSON/JSONB operators (PostgreSQL ->, ->>, @>, ?)
+  date_ops.py      # DateTrunc, Extract, DateAdd/Sub, Age
+  validation.py    # SQL injection protection and identifier validation
+  debug.py         # Query interpolation, analysis, and formatting
+  renderer.py      # Multi-format rendering (dict, JSON, prepared, raw)
 ```
 
 ## License
