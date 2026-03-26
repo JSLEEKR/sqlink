@@ -62,6 +62,7 @@ class Query:
         self._subquery_from: Subquery | None = None
         self._lock: str | None = None
         self._distinct_on: list[str] = []
+        self._insert_from_select: Query | None = None
 
     def clone(self) -> Query:
         """Return a deep copy of this query for safe reuse."""
@@ -217,6 +218,11 @@ class Query:
                 )
             elif isinstance(row, (list, tuple)):
                 self._insert_values.append(list(row))
+        return self
+
+    def from_select(self, select_query: Query) -> Query:
+        """INSERT INTO ... SELECT ... (insert from select query)."""
+        self._insert_from_select = select_query
         return self
 
     def on_conflict(
@@ -459,23 +465,32 @@ class Query:
         quote = d.quote_identifier
         placeholder = d.placeholder
 
-        cols = ", ".join(quote(c) for c in self._insert_columns)
-        parts.append(f"INSERT INTO {quote(self._table)} ({cols})")
+        if self._insert_columns:
+            cols = ", ".join(quote(c) for c in self._insert_columns)
+            parts.append(f"INSERT INTO {quote(self._table)} ({cols})")
+        else:
+            parts.append(f"INSERT INTO {quote(self._table)}")
 
-        # VALUES
-        val_rows = []
-        for row in self._insert_values:
-            row_placeholders = []
-            for v in row:
-                if isinstance(v, Expr):
-                    s, p = v.to_sql(d)
-                    row_placeholders.append(s)
-                    params.extend(p)
-                else:
-                    row_placeholders.append(placeholder())
-                    params.append(v)
-            val_rows.append(f"({', '.join(row_placeholders)})")
-        parts.append(f"VALUES {', '.join(val_rows)}")
+        # INSERT FROM SELECT
+        if self._insert_from_select is not None:
+            select_sql, select_params = self._insert_from_select.build(d)
+            parts.append(select_sql)
+            params.extend(select_params)
+        else:
+            # VALUES
+            val_rows = []
+            for row in self._insert_values:
+                row_placeholders = []
+                for v in row:
+                    if isinstance(v, Expr):
+                        s, p = v.to_sql(d)
+                        row_placeholders.append(s)
+                        params.extend(p)
+                    else:
+                        row_placeholders.append(placeholder())
+                        params.append(v)
+                val_rows.append(f"({', '.join(row_placeholders)})")
+            parts.append(f"VALUES {', '.join(val_rows)}")
 
         # ON CONFLICT
         if self._conflict_action:
