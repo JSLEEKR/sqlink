@@ -18,7 +18,7 @@
 
 ---
 
-## Why sqlink?
+## Why This Exists
 
 Writing raw SQL strings is fragile: forgotten quotes, manual parameter escaping, and dialect differences between PostgreSQL, MySQL, and SQLite. ORMs solve these problems but add heavyweight abstractions, opaque query generation, and performance overhead.
 
