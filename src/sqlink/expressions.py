@@ -198,9 +198,10 @@ class Between(Expr):
         self.high = high
 
     def to_sql(self, dialect: Dialect | None = None) -> tuple[str, list[Any]]:
-        placeholder = dialect.placeholder() if dialect else "?"
+        ph1 = dialect.placeholder() if dialect else "?"
+        ph2 = dialect.placeholder() if dialect else "?"
         col = dialect.quote_identifier(self.field) if dialect else self.field
-        return f"{col} BETWEEN {placeholder} AND {placeholder}", [self.low, self.high]
+        return f"{col} BETWEEN {ph1} AND {ph2}", [self.low, self.high]
 
 
 class In(Expr):
@@ -213,9 +214,10 @@ class In(Expr):
     def to_sql(self, dialect: Dialect | None = None) -> tuple[str, list[Any]]:
         if not self.values:
             return "1 = 0", []
-        placeholder = dialect.placeholder() if dialect else "?"
         col = dialect.quote_identifier(self.field) if dialect else self.field
-        placeholders = ", ".join([placeholder] * len(self.values))
+        placeholders = ", ".join(
+            dialect.placeholder() if dialect else "?" for _ in self.values
+        )
         return f"{col} IN ({placeholders})", list(self.values)
 
 
@@ -229,9 +231,10 @@ class NotIn(Expr):
     def to_sql(self, dialect: Dialect | None = None) -> tuple[str, list[Any]]:
         if not self.values:
             return "1 = 1", []
-        placeholder = dialect.placeholder() if dialect else "?"
         col = dialect.quote_identifier(self.field) if dialect else self.field
-        placeholders = ", ".join([placeholder] * len(self.values))
+        placeholders = ", ".join(
+            dialect.placeholder() if dialect else "?" for _ in self.values
+        )
         return f"{col} NOT IN ({placeholders})", list(self.values)
 
 
