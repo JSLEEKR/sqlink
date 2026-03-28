@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "sqlink"
+name = "jsleekr-sqlink"
 version = "1.0.0"
 description = "Fluent SQL query builder with chain API, parameterized queries, and dialect support"
 readme = "README.md"
