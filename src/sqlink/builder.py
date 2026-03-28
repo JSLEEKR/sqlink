@@ -11,6 +11,11 @@ from sqlink.expressions import Expr, F, Raw, Func, OrderExpr, Subquery
 from sqlink.types import JoinType, OrderDirection
 
 
+def _sanitize_comment(text: str) -> str:
+    """Strip comment-closing sequences to prevent SQL comment injection."""
+    return text.replace("*/", "* /").replace("/*", "/ *")
+
+
 @dataclass
 class _JoinClause:
     join_type: JoinType
@@ -95,12 +100,12 @@ class Query:
 
     def comment(self, text: str) -> Query:
         """Add a SQL comment to the query (/* ... */)."""
-        self._comment = text
+        self._comment = _sanitize_comment(text)
         return self
 
     def label(self, name: str) -> Query:
         """Add a label/tag comment (/* app:label */) for query tracing."""
-        self._label = name
+        self._label = _sanitize_comment(name)
         return self
 
     # ── SELECT ──────────────────────────────────────────────

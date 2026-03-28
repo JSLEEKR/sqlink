@@ -90,3 +90,17 @@ class TestLabel:
     def test_no_comment_by_default(self):
         sql, _ = Query("users").select("*").build()
         assert "/*" not in sql
+
+    def test_comment_injection_sanitized(self):
+        """Prevent SQL injection via comment-closing sequences."""
+        sql, _ = Query("users").select("*").comment("evil */ DROP TABLE users; /*").build()
+        # The closing */ should only appear once (at the end of the comment)
+        assert sql.count("*/") == 1
+        # The opening /* should only appear once (at the start of the comment)
+        assert sql.count("/*") == 1
+
+    def test_label_injection_sanitized(self):
+        """Prevent SQL injection via label with comment-closing sequences."""
+        sql, _ = Query("users").select("*").label("evil */ DROP TABLE users; /*").build()
+        assert sql.count("*/") == 1
+        assert sql.count("/*") == 1
