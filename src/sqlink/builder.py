@@ -535,7 +535,7 @@ class Query:
                 parts.append(f"ON CONFLICT ({conflict_cols}) DO NOTHING")
             elif d and d.supports_upsert():
                 upsert_sql, upsert_params = d.upsert_sql(
-                    self._conflict_columns, self._conflict_update, placeholder()
+                    self._conflict_columns, self._conflict_update, "?"
                 )
                 parts.append(upsert_sql)
                 params.extend(upsert_params)

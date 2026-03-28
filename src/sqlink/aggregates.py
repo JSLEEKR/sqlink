@@ -55,12 +55,24 @@ def Least(*args: Expr | str) -> Func:
     return Func("LEAST", *converted)
 
 
-def Cast(expr: Expr | str, as_type: str) -> Raw:
+def Cast(expr: Expr | str, as_type: str) -> Expr:
     """CAST expression."""
     if isinstance(expr, str):
         return Raw(f"CAST({expr} AS {as_type})")
-    # For Expr objects, we need to convert inline
-    return Raw(f"CAST({{}} AS {as_type})")  # placeholder
+    # For Expr objects, wrap in a CastExpr that properly renders the inner expression
+    return _CastExpr(expr, as_type)
+
+
+class _CastExpr(Expr):
+    """Internal expression for CAST with an Expr operand."""
+
+    def __init__(self, expr: Expr, as_type: str):
+        self._expr = expr
+        self._as_type = as_type
+
+    def to_sql(self, dialect=None) -> tuple[str, list]:
+        inner_sql, inner_params = self._expr.to_sql(dialect)
+        return f"CAST({inner_sql} AS {self._as_type})", inner_params
 
 
 def Concat(*args: Expr | str) -> Func:
